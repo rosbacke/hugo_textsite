@@ -1,4 +1,7 @@
-baseURL = "http://blogg.rosbacke.org/"
+
+
+baseURL = "https://focused-pare-3555cf.netlify.com/"
+#baseURL = "http://blogg.rosbacke.org/"
 footnoteReturnLinkContents = "↩"
 title = "Software development musings"
 dateformat = "2012-02-14"
