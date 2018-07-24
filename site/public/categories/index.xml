@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Software development musings</title>
-    <link>https://focused-pare-3555cf.netlify.com/categories/</link>
+    <link>http://blogg.rosbacke.org/categories/</link>
     <description>Recent content in Categories on Software development musings</description>
     <generator>Hugo -- gohugo.io</generator>
     
-	<atom:link href="https://focused-pare-3555cf.netlify.com/categories/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://blogg.rosbacke.org/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>
