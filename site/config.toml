@@ -1,0 +1,28 @@
+baseURL = "http://blogg.rosbacke.org/"
+footnoteReturnLinkContents = "↩"
+title = "Software development musings"
+dateformat = "2012-02-14"
+
+[params]
+  AuthorName = "Mikael Rosbacke"
+  GitHubUser = "rosbacke"
+  languageCode = "en-us"
+  enableRobotsTXT = true
+  log = true
+  logFile = "hugolog.txt"
+  theme = "hugo_theme_aglaus"
+
+[permalinks]
+  post = "/:year/:month/:title/"
+
+[frontmatter]
+date = ["date","publishDate", "lastmod"]
+lastmod = [":git", "lastmod", "date","publishDate"]
+publishDate = ["publishDate", "date"]
+expiryDate = ["expiryDate"]
+
+[blackfriday]
+  angledQuotes = true
+  extensions = ["hardLineBreak"]
+  fractions = false
+  plainIDAnchors = true
