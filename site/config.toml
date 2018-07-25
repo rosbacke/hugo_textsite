@@ -1,19 +1,30 @@
 
 
-#baseURL = "https://focused-pare-3555cf.netlify.com/"
 baseURL = "http://blogg.rosbacke.org/"
-footnoteReturnLinkContents = "↩"
+paginate = 6
 title = "Software development musings"
-dateformat = "2012-02-14"
+dateFormat = "2006-01-02"
+theme = "hugo-theme-casper"
+#theme = "hugo_theme_aglaus"
+
+# pygmentsStyle = "manni"
+# pygmentsStyle = "native"
+pygmentsStyle = "monokai"
+# pygmentsUseClasses = true
+
+pygmentsCodeFences = true
+pygmentsCodeFencesGuessSyntax = true
+pygmentsUseClassic = true
 
 [params]
-  AuthorName = "Mikael Rosbacke"
+  author = "Mikael Rosbacke"
+  description = "Welcome to my website"
+  githubName = "rosbacke"
   GitHubUser = "rosbacke"
   languageCode = "en-us"
+  cover = "images/IMG_0200.JPG"
+  logo = "images/Mikael2.jpg"
   enableRobotsTXT = true
-  log = true
-  logFile = "hugolog.txt"
-  theme = "hugo_theme_aglaus"
 
 [permalinks]
   post = "/:year/:month/:title/"
@@ -29,3 +40,15 @@ expiryDate = ["expiryDate"]
   extensions = ["hardLineBreak"]
   fractions = false
   plainIDAnchors = true
+
+[[menu.main]]
+  name = "Home"
+  weight = -100
+  identifier = "blog"
+  url = "/"
+
+[[menu.main]]
+  name = "About me"
+  weight = -110
+  identifier = "about"
+  url = "/about"
