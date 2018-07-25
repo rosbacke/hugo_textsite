@@ -3,12 +3,6 @@ title="Interrupts in standard C++"
 date="2018-07-23"
 +++
 
-Writing Documentation using AsciiDoc
-====================================
-Joe Bloggs <jbloggs@mymail.com>
-v2.0, February 2003:
-
-
 == Introduction
 
 So you have this new microcontroller you want to use C&#43;&#43;  on. How do we know your
@@ -84,7 +78,6 @@ This will allow us to operate within the boundaries of what is expected by C&#43
 Now to handle the protection part, we need system dependent primitives to enable/disable running of tasks. These are 2 functions that will be a customization point. It is expected that on a microcontroller they will map to e.g. enable/disable_irq functions or similar.
 Also, the call to synchronize memory should be a customization point since many microcontrollers have much stronger memory subsystems compared to the general case for C/C&#43;&#43;.
 
-....
 {{< highlight cpp >}}
 // Interface to our cover class.
 template<typename System>
@@ -100,14 +93,12 @@ public:
     void unsync() { System::unsync(); }
 };
 {{< /highlight >}}
-....
 
 As can be seen, the asymmetric relationship means 2 different sets of functions.
 The Protect set does double duty of protecting a section of code and forming synchronization of variables inside. The sync variants only perform the synchronization.
 
 In addition, we want the traditional RAII style lock/unlock classes.
 
-....
 {{< highlight cpp >}}
 template<typename Cover>
 class protect_lock {
@@ -125,13 +116,12 @@ public:
     ~sync_lock() { m_c.unsync(); }
 };
 {{< /highlight >}}
-....
 
 So typical use of this would be to have your main() function constructing a protect_lock in a scope where it touches common data that an interrupt is also accessing. The interrupt would use a sync_lock or a protect_lock depending on if it needs to protect from other interrupts or not.
 
 Just using this, the following example should be viable on an ARM Cortex-M4 microcontroller:
 
-....
+{{< highlight cpp >}}
 using Cover = cover<armv7_m::cover>;
 static Cover cov;
 static unsigned count;
@@ -154,7 +144,7 @@ int main()
         setLed(odd);
     }
 }
-....
+{{< /highlight >}}
 
 Here we set up a SysTick interrupt function that should be called at regular intervals to update the count variable. The main loop busy polls this variable and does something with the value.
 All the enable/disable interrupt and synchronization is now relegated to the cover class.
@@ -172,7 +162,7 @@ So for the protection part, we will keep it simple and globally do enable/disabl
 You can get fancy and use e.g. device specific interrupt blocking och blocking below a threshold, but it is overkill. Do note that several types of covers using different strategies can coexist in a program.
 So the following could work:
 
-....
+{{< highlight cpp >}}
 // ARMV7-M implementation of cover
 namespace armv7-m {
 class cover
@@ -185,7 +175,7 @@ public:
     void unsync() { std::atomic_thread_fence(std::memory_order::release); }
 };
 }
-....
+{{< /highlight >}}
 
 The standard fences will be compiled into an assembly instruction 'dmb ish' which
 tells the hardware to sync up its memory before continuing. Both the acquire and release
@@ -199,16 +189,18 @@ via 'dmb ish'. But looking at the disassembly, it does seem a bit excessive. The
 If one further studies the ARMv7-M manual one realizes that the cpsie, cpsid assembly instructions will perform all the needed hardware memory synchronization. Further, an interrupt will make the memory subsystem consistent.
 However, we are not sure that the enable/disable interrupts are valid compiler barriers.
 All the compiler know if that our variables are regular memory accesses that should not be affected by whatever assembly we insert. So to be on the safe side we should use a compiler barrier. For gcc it could look like:
-....
+
+{{< highlight cpp >}}
 __asm__ volatile("": : :"memory");
-....
+{{< /highlight >}}
+
 It is an inline assembly call without any instructions. But since it is volatile, gcc will not move load and stores of memory across it and inside our protected section. Do note that this is invisible at runtime, it only affects how the code is laid out at compile time.
 
 A side note: there exist an std::atomic_signal_fence in addition to std::atomic_thread_fence. It has a similar function but requires the synchronization to be done between a thread and a signal_handler on the same stack. If we can guarantee that, it can be useful. Using this when we simulate interrupts with another thread would be illegal. Also, equating a C/C&#43;&#43;  signal handler (a Unix concept)  with a microcontroller interrupt service routine is probably true, but I have not seen a definitive statement that it is. It is a grey area.
 
 So, this cover implementation should suffice and generate less code:
 
-....
+{{< highlight cpp >}}
 // ARMV7-M implementation of cover, improved.
 namespace armv7-m {
 class cover
@@ -221,14 +213,14 @@ public:
     void unsync() { __asm__ volatile("": : :"memory"); }
 };
 }
-....
+{{< /highlight >}}
 
 
 === Linux simulation case
 
 In the case of a Linux simulation we do not have interrupts, rather we use threads to simulate them. Even if we have real-time threads, we can actually lock them in this case. Hence the easy way here is to implement the cover in terms of a mutex.
 
-....
+{{< highlight cpp >}}
 // Linux implementation of cover.
 namespace linux {
 class cover
@@ -243,7 +235,7 @@ private:
     std::mutex m_;
 };
 }
-....
+{{< /highlight >}}
 
 Here we rely on interrupts being simulated by a thread and can be blocked so a mutex is ok. At the same time, we fall back to the mutex to provide all the guarantees needed to avoid data-races.
 
@@ -257,12 +249,12 @@ In addition to mutexes, we have atomic variables. Looking at the standard atomic
 
 So in our example, we could replace to 'count' variable with an atomic<unsigned> and then we could drop all the use of the Cover object.
 
-....
+{{< highlight cpp >}}
 static std::atomic<unsigned> count;
 
 extern "C" void SysTickHandler(void)
 {
-    // Note, can get away with several operations, since we know we block main fkn.
+    // Note, can get away with several atomic operations. The thread is blocked.
     auto t = count.load();
     count.store(++t);
 }
@@ -273,10 +265,10 @@ int main()
     assert(atomic_is_lock_free(&count));
     while(1) {
         bool odd = (count.load() & 1) != 0;
-        setLed(countodd);
+        setLed(odd);
     }
 }
-....
+{{< /highlight >}}
 
 Less code which is good. Do note the assert in the main function. We need lock-free atomics
 for this to work. The C&#43;&#43; standard says the compiler can insert locks to implement atomics.
